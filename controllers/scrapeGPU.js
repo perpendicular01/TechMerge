@@ -58,7 +58,7 @@ exports.scrapeStartech = async () => {
                 continue;
             }
 
-            price = await page.$$eval('#product > div > div.product-price-options > label.p-wrap.cash-payment.active > span', (elements) => {
+            price = await page.$$eval('#product > div > div.product-short-info > table > tbody > tr:nth-child(n) > td.product-info-data.product-regular-price', (elements) => {
                 return elements.map((element) => {
                     // Use String.replace() to remove newline characters
                     temp = element.textContent.replace(/\n/g, '');

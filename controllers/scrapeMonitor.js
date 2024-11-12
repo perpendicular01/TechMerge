@@ -1,8 +1,14 @@
 let puppeteer = require('puppeteer');
 let Monitor = require('../classes/monitor');
-const connection = require('./dbConnection.js'); 0
+const connection = require('./dbConnection.js');
 
-exports.scrapeStartech = async () => {
+const fs = require('fs');
+const path = require('path');
+
+const defaultImagePath = path.join(__dirname, 'monitor.jpeg');
+const defaultImageBuffer = fs.readFileSync(defaultImagePath);
+
+exports.scrapeStartechMoni = async () => {
     var browser, page, links1, photos1, links2, photos2, links, photos, specification, productName, price, resolution, resolutionMatch, displaySize, panelType, numericValues, warranty, description;
 
     try {
@@ -136,8 +142,7 @@ exports.scrapeStartech = async () => {
                 });
             });
 
-            if(description==undefined)
-            {
+            if (description == undefined) {
                 i++;
                 continue;
             }
@@ -179,13 +184,13 @@ exports.scrapeStartech = async () => {
 
 
 
-exports.scrapeTechland = async () => {
-    var browser, page, links1, photos1, links2, photos2, links, photos, specification, productName, price, resolution, resolutionMatch, displaySize, panelType, numericValues, warranty, description;
+exports.scrapeTechlandMoni = async () => {
+    var link, browser, page, links1, links3, photos3, photos1, links2, photos2, links, photos, specification, productName, price, resolution, resolutionMatch, displaySize, panelType, numericValues, warranty, description;
 
     try {
         browser = await puppeteer.launch();
         page = await browser.newPage();
-        await page.goto('https://www.techlandbd.com/monitor-and-display/computer-monitor?limit=100');
+        await page.goto('https://www.techlandbd.com/monitor-and-display/computer-monitor?fq=1&limit=100');
 
 
         links1 = await page.$$eval('#content > div.main-products-wrapper > div.main-products.product-grid > div:nth-child(n) > div > div.image > a', (links) => {
@@ -197,7 +202,7 @@ exports.scrapeTechland = async () => {
             return elements.map(element => element.src);
         })
 
-        await page.goto('https://www.techlandbd.com/monitor-and-display/computer-monitor?limit=100&page=2');
+        await page.goto('https://www.techlandbd.com/monitor-and-display/computer-monitor?fq=1&limit=100&page=2');
 
         links2 = await page.$$eval('#content > div.main-products-wrapper > div.main-products.product-grid > div:nth-child(n) > div > div.image > a', (links) => {
             return links.map(x => x.href);
@@ -208,7 +213,7 @@ exports.scrapeTechland = async () => {
             return elements.map(element => element.src);
         })
 
-        await page.goto('https://www.techlandbd.com/monitor-and-display/computer-monitor?limit=100&page=3');
+        await page.goto('https://www.techlandbd.com/monitor-and-display/computer-monitor?fq=1&limit=100&page=3');
         links3 = await page.$$eval('#content > div.main-products-wrapper > div.main-products.product-grid > div:nth-child(n) > div > div.image > a', (links) => {
             return links.map(x => x.href);
         })
@@ -230,6 +235,7 @@ exports.scrapeTechland = async () => {
     //Contains src of the images
 
     i = 0;
+    console.log("hello");
     for (link of links) {
         try {
             await page.goto(link);
@@ -255,7 +261,7 @@ exports.scrapeTechland = async () => {
                 continue;
             }
 
-            productName = await page.$$eval('#product > table > caption > div', (elements) => {
+            productName = await page.$$eval('#product > table > caption > div > h1', (elements) => {
                 return elements.map((element) => {
                     // Use String.replace() to remove newline characters
                     return element.textContent.replace(/\n/g, '');
@@ -271,22 +277,29 @@ exports.scrapeTechland = async () => {
                 });
             });
 
-            priceType = await page.$$eval('#product > table > tbody:nth-child(3) > tr:nth-child(2) > td:nth-child(1)', (elements) => {
-                return elements.map((element) => {
-                    return element.textContent;
-                })
-            });
+            if (isNaN(price) || price == undefined) {
 
-            if (priceType[0] == 'special price') {
-                price = await page.$$eval('#product > table > tbody:nth-child(3) > tr:nth-child(2) > td:nth-child(2)', (elements) => {
-                    return elements.map((element) => {
-                        // Use String.replace() to remove newline characters
-                        temp = element.textContent.replace(/\n/g, '');
-                        temp = temp.replace(/,/g, '').replace('৳', '');
-                        return parseInt(temp);
-                    });
-                });
+                i++;
+
+                continue;
             }
+
+            // priceType = await page.$$eval('#product > table > tbody:nth-child(3) > tr:nth-child(2) > td:nth-child(1)', (elements) => {
+            //     return elements.map((element) => {
+            //         return element.textContent;
+            //     })
+            // });
+
+            // if (priceType[0] == 'special price') {
+            //     price = await page.$$eval('#product > table > tbody:nth-child(3) > tr:nth-child(2) > td:nth-child(2)', (elements) => {
+            //         return elements.map((element) => {
+            //             // Use String.replace() to remove newline characters
+            //             temp = element.textContent.replace(/\n/g, '');
+            //             temp = temp.replace(/,/g, '').replace('৳', '');
+            //             return parseInt(temp);
+            //         });
+            //     });
+            // }
 
 
             // Assuming specification[0] contains the specifications string
@@ -303,37 +316,37 @@ exports.scrapeTechland = async () => {
             }
 
 
-            displaySize
-            displaySize = specification[0].substr(specification[0].indexOf('Screen Size') + 11, 15);
 
-            // Use regular expression to extract numeric values from the string
-            numericValues = displaySize.match(/\d+(\.\d+)?/g);
 
-            // If there are numeric values, you can use them as needed
-            if (numericValues) {
-                // numericValues is an array containing the extracted numeric values
-                displaySize = parseFloat(numericValues) // Output: [ '15.6' ] (for example)
-            } else {
-                displaySize = specification[0].substr(specification[0].indexOf('Panel Size') + 11, 15);
-                numericValues = displaySize.match(/\d+(\.\d+)?/g);
+            // Assuming `specification` is an array containing display information as strings
+            let displaySize = '';
+            if (specification[0] && specification[0].includes('Screen Size')) {
+                // Extract substring starting right after 'Screen Size'
+                displaySize = specification[0].substr(specification[0].indexOf('Screen Size') + 11, 50);
 
-                // If there are numeric values, you can use them as needed
+                // Use regular expression to find numeric values in the extracted substring
+                const numericValues = displaySize.match(/\d+(\.\d+)?/);
+
+                // Check if we successfully extracted a numeric value
                 if (numericValues) {
-                    // numericValues is an array containing the extracted numeric values
-                    displaySize = parseFloat(numericValues) // Output: [ '15.6' ] (for example)
+                    displaySize = parseFloat(numericValues[0]); // Convert to float
                 } else {
-                    i++;
-                    continue;
+                    displaySize = 32;
                 }
-            }
+               
+                if(displaySize === 0){
+                    displaySize = 27;
+                }
+            } 
 
-            if (displaySize > 50) {
-                i++;
-                continue;
-            }
+            
+
+
+
 
             panelType;
             let specificationText = specification[0].toLowerCase();
+
             if (/ips\b/i.test(specificationText)) {
                 panelType = 'IPS';
             } else if (/va\b/i.test(specificationText)) {
@@ -346,17 +359,19 @@ exports.scrapeTechland = async () => {
                 panelType = 'Unmentioned'; // Assign 'Unmentioned' if none of the panel types are specified
             }
 
-            warranty;
-            if (specification[0].toLowerCase().includes('warranty')) {
-                warranty = specification[0].substr(specification[0].indexOf('Warranty') + 8, 5);
-                warranty.replace('0', '');
-                warranty = parseInt(warranty);
-                if (isNaN(warranty))
-                    warranty = 3;
-            } else {
-                i++;
-                continue;
-            }
+
+
+            warranty = 3;
+            // if (specification[0].toLowerCase().includes('warranty')) {
+            //     warranty = specification[0].substr(specification[0].indexOf('Warranty') + 8, 5);
+            //     warranty.replace('0', '');
+            //     warranty = parseInt(warranty);
+            //     if (isNaN(warranty))
+            //         warranty = 3;
+            // } else {
+            //     i++;
+            //     continue;
+            // }
 
 
             description = await page.$$eval('#blocks-1-tab-2 > div > div > div', (elements) => {
@@ -366,11 +381,11 @@ exports.scrapeTechland = async () => {
                 });
             });
 
-            if(description==undefined)
-            {
+            if (description == undefined) {
                 i++;
                 continue;
             }
+
 
             try {
                 await connection.execute('delete from monitor_shop where productName=? and shop=?', [productName[0], 'Techland']);
@@ -382,19 +397,23 @@ exports.scrapeTechland = async () => {
             try {
                 const [rows] = await connection.execute('select * from monitor_details where productName=?', [productName[0]]) || [];
                 if (rows[0] == undefined) {
-                    await connection.execute('INSERT INTO monitor_details (productName, resolution, displaySize, panelType,image,description) VALUES (?, ?, ?, ?, ?, ?)', [productName[0], resolution, displaySize, panelType, photos[i++], description[0]]);
+                    await connection.execute('INSERT INTO monitor_details (productName, resolution, displaySize, panelType,image,description) VALUES (?, ?, ?, ?, ?, ?)', [productName[0] || "", resolution || "", displaySize || 0, panelType || "", photos[i++] || defaultImageBuffer, description[0] || ""]);
                 }
             } catch (error) {
+
                 console.error(error);
             }
 
             try {
-                await connection.execute('INSERT INTO monitor_shop (productName, price, shop, link, warranty) VALUES (?, ?, ?, ?, ?)', [productName[0], price[0], 'Techland', link, warranty]);
+
+                await connection.execute('INSERT INTO monitor_shop (productName, price, shop, link, warranty) VALUES (?, ?, ?, ?, ?)', [productName[0] || "o", price[0] || 0, 'Techland', link || "FF", warranty || 2]);
             } catch (error) {
+
                 console.error(error);
             }
         }
         catch (error) {
+
             console.error(error);
             console.log('monitor-techland');
             i++;
@@ -407,7 +426,7 @@ exports.scrapeTechland = async () => {
 
 
 
-exports.scrapePcHouse = async () => {
+exports.scrapePcHouseMoni = async () => {
     var browser, page, links1, photos1, links2, photos2, links, photos, specification, productName, price, resolution, resolutionMatch, displaySize, panelType, numericValues, warranty, description;
 
     try {
@@ -576,15 +595,14 @@ exports.scrapePcHouse = async () => {
                 warranty = 3;
 
 
-            description = await page.$$eval('#blocks-65640699cd147-tab-2 > div > div > div.block-content.block-description', (elements) => {
+            description = await page.$$eval('#blocks-67326f83b2271-tab-2 > div > div > div.block-content.block-description', (elements) => {
                 return elements.map((element) => {
                     // Use String.replace() to remove newline characters
                     return element.textContent.trim();
                 });
             });
 
-            if(description==undefined)
-            {
+            if (description == undefined) {
                 i++;
                 continue;
             }
@@ -600,7 +618,8 @@ exports.scrapePcHouse = async () => {
             try {
                 const [rows] = await connection.execute('select * from monitor_details where productName=?', [productName[0]]) || [];
                 if (rows[0] == undefined) {
-                    await connection.execute('INSERT INTO monitor_details (productName, resolution, displaySize, panelType,image, description) VALUES (?, ?, ?, ?, ?, ?)', [productName[0], resolution, displaySize, panelType, photos[i++], description[0]]);
+
+                    await connection.execute('INSERT INTO monitor_details (productName, resolution, displaySize, panelType, image, description) VALUES (?, ?, ?, ?, ?, ?)', [productName[0] || "", resolution || "", displaySize || 0, panelType || "", photos[i++] || "", description[0] || ""]);
                 }
             } catch (error) {
                 console.error(error);

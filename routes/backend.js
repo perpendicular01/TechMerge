@@ -7,6 +7,7 @@ const comments = require("../controllers/comments");
 const invoiceController = require("../controllers/invoiceController");
 const promoController = require("../controllers/promoController");
 const { scrapeStartech } = require("../controllers/scrapeMonitor");
+const { scrapeTechland } = require("../controllers/scrapeMonitor");
 
 const router = express.Router();
 
