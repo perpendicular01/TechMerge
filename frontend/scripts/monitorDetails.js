@@ -25,17 +25,16 @@ document.addEventListener("DOMContentLoaded", () => {
     // Check if user data exists
     if (userData.username) {
       // Display user data on the home page as needed
-      const account = document.querySelector(
-        "body > nav > div.nav-authentication > div > p"
-      );
+      const account = document.querySelector("#ac1");
       account.innerHTML = userData.username;
+      
       const link1 = document.querySelector(
-        "body > nav > div.nav-authentication > div > div > a:nth-child(1)"
+        "#aclogin"
       );
       link1.innerHTML = "Profile";
       link1.href = "";
       const link2 = document.querySelector(
-        "body > nav > div.nav-authentication > div > div > a:nth-child(2)"
+        "#acsignup"
       );
       link2.innerHTML = "Logout";
       link2.href = "";
@@ -44,7 +43,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 const Logout = document.querySelector(
-  "body > nav > div.nav-authentication > div > div > a:nth-child(2)"
+  "#acsignup"
 );
 
 Logout.addEventListener("click", function (event) {
@@ -70,7 +69,7 @@ Logout.addEventListener("click", function (event) {
 });
 
 const profileButton= document.querySelector(
-  "body > nav > div.nav-authentication > div > div > a:nth-child(1)"
+  "#aclogin"
 );
 
 profileButton.addEventListener("click", function(event){
@@ -189,7 +188,34 @@ window.onload = () => {
   const postElement = document.createElement("div");
   postElement.classList.add("card");
   postElement.innerHTML = `
-    <div class="info">
+    <div class="w-[1000px] mx-auto bg-[#FFFFFF]">
+        <div class="flex justify-between items-center ">
+          <img class="w-3/5 h-3/5" src="${postData.image}" alt="">
+          <div class="inf w-1/2 flex flex-col">
+            <p class="text-xl font-bold  text-red-800"> ${postData.shop} </p>
+            <div class="divider"></div>
+            <h3 class="text-xl font-bold text-sky-900 "> ${postData.productName} </h3>
+            <div class="divider"></div>
+            <p class="text-lg font-semibold text-black"> Key Features: </p>
+            <p class="text-sm text-[#000000] text-opacity-70">Resolution: ${postData.resolution} </p>
+            <p class="text-sm text-[#000000] text-opacity-70">Display Size: ${postData.displaySize} </p>
+            <p class="text-sm text-[#000000] text-opacity-70">Panel Type: ${postData.panelType} </p>
+            <p class="text-sm text-[#000000] text-opacity-70">Refresh Rate: ${refreshRate} </p>
+            <p class="text-sm text-[#000000] text-opacity-70">Response time: ${responseTime} </p>
+            <p class="text-sm text-[#000000] text-opacity-70">Color: ${color} </p>
+            <p class="text-sm text-[#000000] text-opacity-70">Display Surface: ${displaySurface} </p>
+            <div class="divider"></div>
+
+            <p class="text-xl font-bold text-red-800"> Price: ${postData.price} </p>
+
+            
+          </div>
+        </div>
+    </div>
+    `;
+    
+
+    {/* <div class="info">
        <div class="imagediv">
           <img src="${postData.image}" alt="" srcset="" class="card-image">
        </div>
@@ -205,15 +231,16 @@ window.onload = () => {
          <p class="card-text price">Display Surface: ${displaySurface}</p>
          <p class="card-text price">Price: ${postData.price}</p>
        </div>
-     </div>
-    `;
+     </div> */}
+
+    
   postContainer.appendChild(postElement);
   const descriptionDiv = document.querySelector(".descriptionDiv");
   const description = document.createElement("div");
   description.classList.add("description");
   description.innerHTML = `
-      <p class="description_header">Description:</p>
-      <p class="description_text">${postData.description}</p>
+      <p class="description_header text-[#20204E] font-bold">Description:</p>
+      <p class="description_text  p-4 mt-2 rounded-lg">${postData.description}</p>
     `;
   console.log("a");
   descriptionDiv.appendChild(description);
